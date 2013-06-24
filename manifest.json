@@ -1,0 +1,29 @@
+{
+    "manifest_version": 2,
+    "name": "Smart Playlists for YouTube",
+    "description": "Smart Playlists for YouTube enhance playback experience.",
+    "version": "0.1",
+    "permissions": ["http://www.syscrunch.com/", "http://www.youtube.com/", "https://www.youtube.com/", "tabs"],
+    "icons": {
+        "48": "img/icon-48px.png",
+        "64": "img/icon-64px.png",
+        "128": "img/icon-128px.png"
+    },
+    "browser_action": {
+        "default_icon": "img/icon-19px.png",
+        "default_popup": "html/app.html"
+    },
+    "background": {
+        "scripts": ["js/eventPage.js"],
+        "persistent": false
+    },
+    "content_scripts": [
+        {
+            "matches": ["http://www.youtube.com/*", "https://www.youtube.com/*"],
+            "css": ["css/content.css"],
+            "js": ["js/content.js", "js/jquery-1.10.1.min.js", "js/mustache.js"],
+            "run_at": "document_idle"
+        }
+    ],
+    "web_accessible_resources": ["js/youtube.js"]
+}
