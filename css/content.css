@@ -1,6 +1,50 @@
 .yt-controls {
 	width: 100%;
-	min-height: 50px;
+	min-height: 70px;
 	/*border: 1px solid black;*/
-	background-color: rgba(241,241,241,1.0)
+	background-color: rgba(241,241,241,1.0);
+	overflow-x: hidden;
+	font-size: 11px;
+	margin: 3px 0px;
+}
+
+.separator {
+	display: inline-block;
+	border-left: 1px black solid;
+	margin: 0 2px;
+}
+
+.slider {
+	background-image: url('chrome-extension://__MSG_@@extension_id__/img/rangeBar.png');
+	background-position: 0px 10px;
+	background-repeat: repeat-x;
+	margin: 0px;
+	height: 30px;
+}
+
+#range {
+	border: none;
+	height: 37px;
+}
+
+#range td {
+	border: none;
+	min-width: 0px;
+}
+
+.selected{
+	background-image: url('chrome-extension://__MSG_@@extension_id__/img/rangeBar_sel.png');
+	background-position: 0px 9px;
+	background-repeat: repeat-x;
+}
+
+.rangeGrip {
+	width: 10px;
+	height: 19px;
+	background-image: url('chrome-extension://__MSG_@@extension_id__/img/slider.png');
+	z-index: 8;
+}
+
+.rangeDrag .rangeGrip, .rangeGrip:hover {
+	background-position: right;
 }

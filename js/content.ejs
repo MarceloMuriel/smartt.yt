@@ -1,0 +1,32 @@
+<div id="sp_controls" class="yt-controls player-width">
+	<div class="slider player-width">
+		<table id="range" width="100%" cellspacing="0" cellpadding="0">
+			<tr>
+				<%
+				if(intervals.length){
+					prev = 0;
+					for(var i = 0; i <= intervals.length; i++){
+						className = i % 2 != 0? "selected" : "";%>
+						<td class="<%= className %>" width="<%= (i < intervals.length? ((intervals[i] - prev) / duration): (duration - prev) / duration) * 100 %>%"></td>
+						<%
+						prev = intervals[i];
+					}
+				}else{%>
+					<td class="selected" width="100%"></td><%
+				}%>
+			</tr>
+		</table>
+	</div>
+	<div id="sp_buttons">
+		<a href="#" class="btn_control">Start</a>
+		<a href="#" class="btn_control">End</a>
+		<div class="separator">
+			.
+		</div>
+		<a href="#" class="btn_control">Marker</a>
+		<div class="separator">
+			.
+		</div>
+		<a href="#" class="btn_control">Done</a>
+	</div>
+</div>
