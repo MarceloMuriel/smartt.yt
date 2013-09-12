@@ -7,44 +7,83 @@
 	font-size: 11px;
 	margin: 3px 0px;
 }
-
-.separator {
+#sp_controls{
+	position: relative;
+}
+.yt-separator {
 	display: inline-block;
 	border-left: 1px black solid;
 	margin: 0 2px;
 }
-
-.slider {
-	background-image: url('chrome-extension://__MSG_@@extension_id__/img/rangeBar.png');
-	background-position: 0px 10px;
-	background-repeat: repeat-x;
-	margin: 0px;
-	height: 30px;
+.save-edit{
+	position: absolute;
+	left: 100.5%;
+	top: 10%;
 }
-
-#range {
+.save-edit .ui-button-text{
+	padding: 3px !important;
+	font-size: 90% !important;
+}
+/* jquery UI custom slider */
+.ui-slider {
+	height: 10px;
+}
+.ui-slider-handle{
+	width: 12px !important;
+	height: 12px !important;
+	top: -1px !important;
+}
+.ui-slider-range {
+	height: 10px;
+	background-color: #4c8bca;
+}
+.yt-multi-slider-cont{
+	position: relative;
+	padding: 15px 0px;
+	margin: 10px 0px; 
+}
+/* Interval removal*/
+.ui-slider-delete{
+	position: absolute;
+	background-image: url('chrome-extension://__MSG_@@extension_id__/img/del_16px.png');
+	width: 16px;
+	height: 16px;
+	top: -5px;
 	border: none;
-	height: 37px;
+	cursor:pointer;
+	/*border: 1px solid #CCCCCC;*/
 }
-
-#range td {
-	border: none;
-	min-width: 0px;
+/* Slider handle tooltip */
+.tooltip {
+    position: absolute;
+    z-index: 1020;
+    display: block;
+    padding: 3px;
+    font-size: 9px;
+    visibility: visible;
+    margin-top: -2px;
+    bottom:120%;
+    margin-left: -0.9em;
 }
-
-.selected{
-	background-image: url('chrome-extension://__MSG_@@extension_id__/img/rangeBar_sel.png');
-	background-position: 0px 9px;
-	background-repeat: repeat-x;
+.tooltip .tooltip-arrow {
+    bottom: 0;
+    left: 50%;
+    margin-left: -5px;
+    border-top: 5px solid #545454;
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+    position: absolute;
+    width: 0;
+    height: 0;
 }
-
-.rangeGrip {
-	width: 10px;
-	height: 19px;
-	background-image: url('chrome-extension://__MSG_@@extension_id__/img/slider.png');
-	z-index: 8;
-}
-
-.rangeDrag .rangeGrip, .rangeGrip:hover {
-	background-position: right;
+.tooltip-inner {
+    max-width: 200px;
+    padding: 3px 5px;
+    color: #ffffff;
+    text-align: center;
+    text-decoration: none;
+    background-color: #545454;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
 }
