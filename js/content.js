@@ -59,6 +59,12 @@ var YouTube = (function() {
 				if (JSON.stringify(yt.getMeta()) != yt.getMetaSerial())
 					// Save changes to the DB
 					yt.saveDB();
+				// Set playback to the closest interval beginning.
+				for ( i = meta.intervals.length - 2, t = player.getCurrentTime(); i >= 0 & t > 0; i = i - 2)
+					if (t > meta.intervals[i]) {
+						player.seekTo(meta.intervals[i], true);
+						break;
+					}
 				btn.button('option', 'label', 'Edit');
 				$('.ui-slider-delete').css('display', 'none');
 			}
