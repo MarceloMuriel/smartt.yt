@@ -62,6 +62,7 @@ var YouTube = (function() {
 				// Set playback to the closest interval beginning.
 				for ( i = meta.intervals.length - 2, t = player.getCurrentTime(); i >= 0 & t > 0; i = i - 2)
 					if (t > meta.intervals[i]) {
+						this.setIntervalIndex(i);
 						player.seekTo(meta.intervals[i], true);
 						break;
 					}
