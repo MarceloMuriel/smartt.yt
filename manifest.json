@@ -9,10 +9,10 @@
 		"64": "img/icon-64px.png",
 		"128": "img/icon-128px.png"
 	},
-	"browser_action": {
+	/*"browser_action": {
 		"default_icon": "img/icon-19px.png",
 		"default_popup": "html/app.html"
-	},
+	},*/
 	"background": {
 		"scripts": ["js/eventPage.js"],
 		"persistent": false
@@ -21,9 +21,9 @@
 		{
 			"matches": ["http://www.youtube.com/*", "https://www.youtube.com/*"],
 			"css": ["css/jquery-ui-1.10.3.custom.min.css", "css/content.css"],
-			"js": ["js/jquery-1.10.1.min.js", "js/jquery-migrate-1.2.1.min.js", "js/jquery-ui-1.10.3.custom.min.js", "js/jquery.couch.js", "js/content.js"],
+			"js": ["js/jquery-1.10.1.min.js", "js/jquery-migrate-1.2.1.min.js", "js/jquery-ui-1.10.3.custom.min.js", "js/jquery.couch.js", "js/content.js", "js/yt.js"],
 			"run_at": "document_idle"
 		}
 	],
-	"web_accessible_resources": ["js/controls.ejs", "js/jquery-1.10.1.min.map", "img/*"]
+	"web_accessible_resources": ["js/player.js", "js/jquery-1.10.1.min.map", "img/*"]
 }
