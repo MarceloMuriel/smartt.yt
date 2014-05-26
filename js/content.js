@@ -1,41 +1,45 @@
 var YouTube = (function() {
-	yt = function(timer) {
+	yt = function(timer, player) {
 		// Local variables to the instance/function
 		id = null;
 		metaSerial = null;
 		meta = null;
 		intervalIndex = -2;
-		player = window['player-api'].children[0];
 		// Edition is disabled by default
 		editionMode = false;
 		// Self reference for jQuery functions.
 		yt = this;
 		// Init couch db prefix.
 		$.couch.urlPrefix = "http://127.0.0.1:5984";
-
-		this.getPlayer = function() {
-			return player;
-		};
+		
 		this.getID = function() {
 			return id;
 		};
 		this.setID = function(_id) {
 			id = _id;
-		}
+		};
 		this.getMeta = function() {
 			return meta;
 		};
+		/**
+		 * Update the current metadata. This method is typically fired after 
+		 * retrieving metadata from the database or the current page.
+		 */
 		this.setMeta = function(m) {
 			meta = m;
-			console.log("new meta:", meta);
-		}
+			console.log("setting new meta:", meta);
+		};
 		this.getMetaSerial = function() {
 			return metaSerial;
-		}
+		};
+		/**
+		 * The metaserial is a JSON string encoding of the current metadata 
+		 * state. It is used as a signature to detect changes to the metadata.
+		 */
 		this.updateMetaSerial = function() {
 			// This representation will be used to detect changes in the object later on.
 			metaSerial = JSON.stringify(meta);
-		}
+		};
 		this.getIntervalIndex = function() {
 			return intervalIndex;
 		};
@@ -43,7 +47,7 @@ var YouTube = (function() {
 			intervalIndex = idx;
 		};
 		this.isReady = function() {
-			return (meta != null && typeof player.loadVideoById === 'function');
+			return (meta != null && player.isReady());
 		};
 		this.isInEditionMode = function() {
 			return editionMode;
@@ -70,30 +74,52 @@ var YouTube = (function() {
 				$('.ui-slider-delete').css('display', 'none');
 			}
 			btn.prop('checked', editionMode).button('refresh');
-		}
+		};
 		this.init = function(newID) {
 			// reset the playback index
 			this.setIntervalIndex(-2);
-			// If the new videoID differs from the one in the page set a timeout.
+			/**
+			 * The page's videoId meta must match the newID pass on to this function. 
+			 * Otherwise, set a timeout and calll the function again. This is the case 
+			 * of AJAX call inside the YouTube page to load new videos.
+			 * 
+			 * TODO: Check this function in the case of HTML5 video.
+			 */
 			if (id != null && $("meta[itemprop='videoId']").attr('content') != newID) {
 				setTimeout(function() {
 					yt.init.call(yt, newID);
 				}, 50);
 				return;
 			}
+			/**
+			 * First time init, when newID is null and it is retrieved from the page's metadata.
+			 */
 			if ( id = newID || $("meta[itemprop='videoId']").attr('content')) {
 				this.loadMeta();
 			}
 		};
 		this.loadDefaultMeta = function() {
-			// a = Util.getURLparam('test_key', $('#movie_player').attr('flashvars'));
+			/**
+			 * Retrieve the duration in seconds from the page's metadata.
+			 */
 			duration = (/(\d+)M(\d+)/.exec($("meta[itemprop='duration']").attr('content')) || []).splice(1).reduce(function(a, b) {
 				return parseInt(a) * 60 + parseInt(b);
 			}, 0);
 			this.setMeta({
 				videoID : id,
+				/**
+				 * Parse the playlist ID from the current URL
+				 * TODO: Try to read the playlist ID from the page's meta.
+				 */
 				playlist : [Util.getURLparam('list', location.href)],
 				duration : duration,
+				/**
+				 * YouTube Channel this video belongs to (added in v1.5).
+				 */
+				channelID : $("meta[itemprop='channelId']").attr('content'),
+				/**
+				 * By default there is a single interval matching the whole video duration.
+				 */
 				intervals : [0, duration],
 				tags : {}
 			});
@@ -109,15 +135,34 @@ var YouTube = (function() {
 			 * tags: {t1: "tag 1", t2: "tag2"}
 			 * }
 			 */
+			
+			/**
+			 * Call the videos/all view in CouchDB that retrieves all videos and filter 
+			 * it by videoID. 
+			 */
 			$.couch.db("ytsmartplaylists").view("videos/all", {
 				key : id,
 				success : function(data) {
-					console.log("video data from DB: ", data);
+					/**
+					 * The retrieved data is a collection with multiple rows. Each 
+					 * row value property contains the document itself, meaning the 
+					 * video metadata.
+					 */
 					if (data.rows.length > 0) {
+						/* The first row must contain the video metadata */
 						m = data.rows[0].value;
-						// Update Playlist info
+						/**
+						 * Update the playlist info. The same video can belong to multiple playlists 
+						 * including the current one (if present).
+						 */
 						m.playlist = !Array.isArray(m.playlist) ? [] : ( l = Util.getURLparam('list', location.href)) && m.playlist.indexOf(l) == -1 && m.playlist.push(l) ? m.playlist : m.playlist;
+						/**
+						 * Update the channel ID for any video without this meta, typically those below v1.5
+						 */
+						m.channelID = !m.channelID ? $("meta[itemprop='channelId']").attr('content'): m.channelID;
+						/* Replace the current metadata with the one of the retrieved video */
 						yt.setMeta(m);
+						/* Update the doc in the database */
 						yt.saveDB();
 					} else {
 						console.log("Cannot retrieve " + id + " from server. Reading defaults..");
@@ -125,6 +170,10 @@ var YouTube = (function() {
 					}
 					yt.loadControls();
 				},
+				/**
+				 * If the database cannot be read, load the default meta (from the page) and start 
+				 * the controls. 
+				 */
 				error : function(status) {
 					console.log("Error retrieving " + id + " from server. Reading defaults..");
 					yt.loadDefaultMeta();
@@ -136,7 +185,7 @@ var YouTube = (function() {
 
 		this.loadControls = function() {
 			$('#sp_controls').remove();
-			$('#player').append('<div id="sp_controls"><div id="sp_buttons"><a href="#" id="add-interval">+Add Interval</a><div class="yt-separator">.</div><a href="#" id="add-marker">Add Marker</a></div><input id="save-edit" type="checkbox"/><label for="save-edit" class="save-edit">Edit</label></div>');
+			$('#player').append('<div id="sp_controls"><input id="save-edit" type="checkbox"/><label for="save-edit" class="save-edit">Edit</label><div id="sp_buttons"><a href="#" id="add-interval">+Add Interval</a><div class="yt-separator">.</div><a href="#" id="add-marker">Add Marker</a></div></div>');
 			loadSlider = function() {
 				$('.yt-multi-slider-cont').remove();
 				$('#sp_controls').addClass("player-width").prepend('<div class="yt-multi-slider-cont"><div class="yt-multi-slider"></div></div>');
@@ -218,7 +267,7 @@ var YouTube = (function() {
 						player.seekTo(ints[seekPlayerTo], true);
 					}
 				});
-			}
+			};
 			loadSlider();
 
 			$('#add-interval').button().click(function(e) {
@@ -265,13 +314,20 @@ var YouTube = (function() {
 				console.log("Cannot add interval, not enough space..");
 			}
 		};
+		
 		this.saveDB = function() {
 			$.couch.db("ytsmartplaylists").saveDoc(yt.getMeta(), {
 				success : function(data) {
+					/**
+					 * Replicate the _id and _rev properties with the database data record returned.
+					 * This is important to update the metadata on the next database saving, 
+					 * instead of creating a new doc entry in the database.
+					 */
 					yt.getMeta()._id = data.id;
 					yt.getMeta()._rev = data.rev;
+					/* Generate the metadata signature again */
 					yt.updateMetaSerial();
-					console.log("updated meta after saving to the DB: ", yt.getMeta());
+					//console.log("updated meta after saving to the DB: ", yt.getMeta());
 				},
 				error : function(status) {
 					console.log("saving to DB failed: ", status);
@@ -279,7 +335,7 @@ var YouTube = (function() {
 			});
 		};
 		this.watchControls = function() {
-			if (!this.isReady() && $('#sp_controls').length == 0)
+			if (!this.isReady() || $('#sp_controls').length == 0)
 				return;
 			t = player.getCurrentTime();
 			disableAddInt = false;
@@ -331,6 +387,33 @@ var YouTube = (function() {
 	return yt;
 })();
 
+Player = (function(){
+	p = function(){
+		yt_player = window['player-api'].children[0];
+		
+		this.isReady = function(){
+			return false;
+			//typeof yt_player.loadVideoById === 'function';
+		};
+		this.getCurrentTime = function(){
+			return 0;
+		};
+		this.playVideo = function(){
+			return 0;
+		};
+		this.pauseVideo = function(){
+			return 0;
+		};
+		this.getVideoURL = function(){
+			return 0;
+		};
+		this.seekTo = function(seconds, allowSeekAhead){
+			return 0;
+		};
+	};
+	return p;
+})();
+
 Timer = (function() {
 	t = function() {
 		fxs = [];
@@ -361,7 +444,7 @@ Timer = (function() {
 		};
 		this.stop = function() {
 			clearInterval(_timerID);
-		}
+		};
 	};
 	return t;
 })();
@@ -385,4 +468,5 @@ var Util = (function() {
 })();
 
 // Run the app
-yt = new YouTube(new Timer());
+ytPlayer = new Player();
+ytCustom = new YouTube(new Timer(), ytPlayer);

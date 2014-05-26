@@ -17,8 +17,8 @@
 }
 .save-edit{
 	position: absolute;
-	left: 100.5%;
-	top: 10%;
+	right: 0px;
+	top: 45%;
 }
 .save-edit .ui-button-text{
 	padding: 3px !important;
