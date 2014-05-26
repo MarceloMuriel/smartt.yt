@@ -363,6 +363,7 @@ var YouTube = (function() {
 					player.playVideo();
 					// Avoid resetting the playback to 0
 					if (meta.intervals[intervalIndex] > 0) {
+						console.log('seeking to ' + meta.intervals[intervalIndex]);
 						player.seekTo(meta.intervals[intervalIndex], true);
 					}
 				} else {
@@ -383,10 +384,13 @@ var YouTube = (function() {
 			}
 		};
 		this.init();
+		/**
+		 * Timer is now controlled by the (injected) player code in the page.
+		 */
 		// initialize the timer
-		timer.add(this, this.watchControls);
-		timer.add(this, this.watchPlayback);
-		timer.run();
+		//timer.add(this, this.watchControls);
+		//timer.add(this, this.watchPlayback);
+		//timer.run();
 	};
 	return yt;
 })();
@@ -457,6 +461,9 @@ ytPlayer = {
 	getCurrentTime : function(){
 		return playerMeta.currentTime;
 	},
+	getPlayerState : function(){
+		return playerMeta.state;
+	},
 	seekTo : function(seconds, allowSeekAhead){
 		document.dispatchEvent(new CustomEvent('YT_player_seekTo', {
 			detail: {
@@ -476,11 +483,21 @@ ytPlayer = {
 	},
 	setPlayerMeta : function(meta){
 		playerMeta = meta;
+		/* Notify the YouTube object to update the controls and the playback. */
+		document.dispatchEvent(new CustomEvent('YT_update_watch'));
+	},
+	getPlayerMeta : function(){
+		return playerMeta;
 	}
 };
-document.addEventListener('YT_player_meta', function(e){
-	ytPlayer.setPlayerMeta(e.detail);
-});
 		
 // Run the app
 ytCustom = new YouTube(new Timer(), ytPlayer);
+
+document.addEventListener('YT_player_meta', function(e){
+	ytPlayer.setPlayerMeta(e.detail);
+});
+document.addEventListener('YT_update_watch', function(e){
+	ytCustom.watchControls();
+	ytCustom.watchPlayback();
+});
