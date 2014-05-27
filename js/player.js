@@ -14,6 +14,9 @@ document.addEventListener('YT_player_playVideo', function(e) {
 document.addEventListener('YT_player_pauseVideo', function(e) {
     player.pauseVideo();
 });
+document.addEventListener('YT_player_nextVideo', function(e) {
+    player.nextVideo();
+});
 
 updateMeta = function(){
 	document.dispatchEvent(new CustomEvent('YT_player_meta', {

@@ -30,8 +30,8 @@ var YouTube = (function() {
 		 * retrieving metadata from the database or the current page.
 		 */
 		this.setMeta = function(m) {
+			console.log("setting meta:", meta);
 			meta = m;
-			console.log("setting new meta:", meta);
 		};
 		this.getMetaSerial = function() {
 			return metaSerial;
@@ -83,22 +83,9 @@ var YouTube = (function() {
 			// reset the playback index
 			this.setIntervalIndex(-2);
 			/**
-			 * The page's videoId meta must match the newID pass on to this function. 
-			 * Otherwise, set a timeout and calll the function again. This is the case 
-			 * of AJAX call inside the YouTube page to load new videos.
-			 * 
-			 * TODO: Check this function in the case of HTML5 video.
+			 * If there is no initial newID then read if from the page. 
 			 */
-			if (id != null && jQuery("meta[itemprop='videoId']").attr('content') != newID) {
-				setTimeout(function() {
-					yt.init.call(yt, newID);
-				}, 50);
-				return;
-			}
-			/**
-			 * First time init, when newID is null and it is retrieved from the page's metadata.
-			 */
-			if ( id = newID || jQuery("meta[itemprop='videoId']").attr('content')) {
+			if ((id = newID) || (id = jQuery("meta[itemprop='videoId']").attr('content'))) {
 				this.loadMeta();
 			}
 		};
@@ -115,7 +102,7 @@ var YouTube = (function() {
 				 * Parse the playlist ID from the current URL
 				 * TODO: Try to read the playlist ID from the page's meta.
 				 */
-				playlist : [Util.getURLparam('list', location.href)],
+				playlist : (l = Util.getURLparam('list', location.search))?[l]:[],
 				duration : duration,
 				/**
 				 * YouTube Channel this video belongs to (added in v1.5).
@@ -358,25 +345,36 @@ var YouTube = (function() {
 			//console.log(player.getPlayerState(), player.getCurrentTime(), intervalIndex, meta.intervals[intervalIndex]);
 			if (intervalIndex == -2 || (t < meta.duration && t >= meta.intervals[intervalIndex + 1])) {
 				if (intervalIndex + 2 < meta.intervals.length) {
-					// next interval
+					/* Next interval, an interval has 2 points: start and end */
 					intervalIndex += 2;
-					player.playVideo();
-					// Avoid resetting the playback to 0
+					/**
+					 * Seek the player to a non 0 position.
+					 */
 					if (meta.intervals[intervalIndex] > 0) {
 						player.seekTo(meta.intervals[intervalIndex], true);
 					}
+					/* Inmediately start playing the video */
+					player.playVideo();
+					console.log('playing interval '+ (intervalIndex + 1));
 				} else {
-					// If playing a playlist seek to the end.
-					if (Util.getURLparam('list', location.href)) {
-						player.seekTo(meta.duration);
+					console.log('last interval reached.');
+					/**
+					 * If it is a playlist, then play the next video. Otherwise loop the video. 
+					 */
+					if (Util.getURLparam('list', location.search)) {
+						console.log('switching to next video');
+						player.nextVideo();
 					} else {
-						// Back to the beginning
-						player.playVideo();
+						/* Back to the beginning */
+						console.log('playing back the same video');
 						player.seekTo(meta.intervals[0]);
+						player.playVideo();
 					}
 				}
 			}
+			/* Watch for video switching */
 			if (( vid = Util.getURLparam('v', player.getVideoUrl())) && vid != this.getID()) {
+				console.log('vid switched to',  Util.getURLparam('v', player.getVideoUrl()), 'from ', this.getID(), ', reinitializing..');
 				player.pauseVideo();
 				this.setEditionMode(false);
 				this.init(vid);
@@ -434,7 +432,11 @@ var Util = (function() {
 		return dbURL;
 	};
 	u.getURLparam = function(name, stack) {
-		return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|jQuery)').exec(stack)||[,""])[1].replace(/\+/g, '%20')) || null;
+		name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+	    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+	    results = regex.exec(stack);
+	    return results == null ? null : decodeURIComponent(results[1].replace(/\+/g, " "));
+		//return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|jQuery)').exec(stack)||[,""])[1].replace(/\+/g, '%20')) || null;
 	};
 	return u;
 })();
@@ -468,6 +470,9 @@ ytPlayer = {
 	},
 	pauseVideo: function(){
 		document.dispatchEvent(new CustomEvent('YT_player_pauseVideo'));
+	},
+	nextVideo: function(){
+		document.dispatchEvent(new CustomEvent('YT_player_nextVideo'));
 	},
 	getVideoUrl: function(){
 		return playerMeta.videoUrl;
