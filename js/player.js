@@ -4,26 +4,26 @@
  */
 player = window['player-api'].children[0];
 
-document.addEventListener('YT_player_seekTo', function(e) {
-    player.seekTo(e.detail.seconds, e.detail.allowSeekAhead);
-});
-document.addEventListener('YT_player_playVideo', function(e) {
-    player.playVideo();
-});
-document.addEventListener('YT_player_pauseVideo', function(e) {
-    player.pauseVideo();
-});
-document.addEventListener('YT_player_nextVideo', function(e) {
-    player.nextVideo();
-});
-document.addEventListener('YT_player_unMute', function(e) {
-    player.unMute();
-});
-document.addEventListener('YT_player_mute', function(e) {
-    player.mute();
-});
-
 startPlayer = function(p){
+	document.addEventListener('YT_player_seekTo', function(e) {
+	    p.seekTo(e.detail.seconds, e.detail.allowSeekAhead);
+	});
+	document.addEventListener('YT_player_playVideo', function(e) {
+	    p.playVideo();
+	});
+	document.addEventListener('YT_player_pauseVideo', function(e) {
+	    p.pauseVideo();
+	});
+	document.addEventListener('YT_player_nextVideo', function(e) {
+	    p.nextVideo();
+	});
+	document.addEventListener('YT_player_unMute', function(e) {
+	    p.unMute();
+	});
+	document.addEventListener('YT_player_mute', function(e) {
+	    p.mute();
+	});
+	
 	p.mute();
 	updatePlayer = function(p){
 		document.dispatchEvent(new CustomEvent('YT_player_update', {
@@ -43,6 +43,8 @@ startPlayer = function(p){
 };
 
 if(player && typeof(player.loadVideoById) === 'function'){
+	startPlayer(player);
+}else{
 	console.log('player is not loaded, waiting..');
 	player_load_interval = setInterval(function(){
 		player = window['player-api'].children[0];
@@ -51,6 +53,4 @@ if(player && typeof(player.loadVideoById) === 'function'){
 			startPlayer(player);
 		}
 	}, 10);
-}else{
-	startPlayer(player);
 }

@@ -517,7 +517,7 @@ document.addEventListener('YT_player_update', function(e){
 	 * retrieved from the page. In such case, send the videoID retrieved from the player 
 	 * metadata.
 	 */
-	if(!ytCustom.isReady()){
+	if(!ytCustom.isReady() && ytPlayer.getVideoID()){
 		ytCustom.init(ytPlayer.getVideoID());
 	}
 	ytCustom.watchControls();
