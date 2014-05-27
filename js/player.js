@@ -19,6 +19,9 @@ document.addEventListener('YT_player_nextVideo', function(e) {
 document.addEventListener('YT_player_unMute', function(e) {
     player.unMute();
 });
+document.addEventListener('YT_player_mute', function(e) {
+    player.mute();
+});
 
 startPlayer = function(p){
 	p.mute();

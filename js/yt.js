@@ -381,6 +381,7 @@ var YouTube = (function() {
 			 */
 			if (( vid = Util.getURLparam('v', player.getVideoUrl())) && vid != this.getID()) {
 				console.log('vid switched to',  Util.getURLparam('v', player.getVideoUrl()), 'from ', this.getID(), ', reinitializing..');
+				player.mute();
 				player.pauseVideo();
 				this.setEditionMode(false);
 				this.init(vid);
@@ -494,6 +495,9 @@ ytPlayer = {
 	},
 	unMute: function(){
 		document.dispatchEvent(new CustomEvent('YT_player_unMute'));
+	},
+	mute: function(){
+		document.dispatchEvent(new CustomEvent('YT_player_mute'));
 	}
 };
 		
