@@ -30,8 +30,8 @@ var YouTube = (function() {
 		 * retrieving metadata from the database or the current page.
 		 */
 		this.setMeta = function(m) {
-			console.log("setting meta:", meta);
 			meta = m;
+			console.log("meta set:", meta);
 		};
 		this.getMetaSerial = function() {
 			return metaSerial;
@@ -83,10 +83,12 @@ var YouTube = (function() {
 			// reset the playback index
 			this.setIntervalIndex(-2);
 			/**
-			 * If there is no initial newID then read if from the page. 
+			 * Load the newID if any, try also to load the videoID from the page.
 			 */
 			if ((id = newID) || (id = jQuery("meta[itemprop='videoId']").attr('content'))) {
 				this.loadMeta();
+			}else{
+				console.log('init: no valid videoID received or found in the page');
 			}
 		};
 		this.loadDefaultMeta = function() {
@@ -477,6 +479,9 @@ ytPlayer = {
 	getVideoUrl: function(){
 		return playerMeta.videoUrl;
 	},
+	getVideoID: function(){
+		return Util.getURLparam('v', playerMeta.videoUrl);
+	},
 	setPlayerMeta : function(meta){
 		playerMeta = meta;
 	},
@@ -485,7 +490,7 @@ ytPlayer = {
 	}
 };
 		
-/* Run the YouTube application */
+/* Create the YouTube application */
 ytCustom = new YouTube(ytPlayer);
 ytCustom.init();
 
@@ -494,8 +499,16 @@ ytCustom.init();
  * metadata coming from the player. After updating the metadata it 
  * will fire the YouTube watching controls.
  */
-document.addEventListener('YT_player_meta', function(e){
+document.addEventListener('YT_player_update', function(e){
 	ytPlayer.setPlayerMeta(e.detail);
+	/**
+	 * The yt object might not be initialized. This happens when the videoID cannot be 
+	 * retrieved from the page. In such case, send the videoID retrieved from the player 
+	 * metadata.
+	 */
+	if(!ytCustom.isReady()){
+		ytCustom.init(ytPlayer.getVideoID());
+	}
 	ytCustom.watchControls();
 	ytCustom.watchPlayback();
 });

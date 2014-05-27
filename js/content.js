@@ -6,5 +6,6 @@ var s = document.createElement('script');
 s.src = chrome.extension.getURL('js/player.js');
 (document.head||document.documentElement).appendChild(s);
 s.onload = function(e) {
+	console.log('player.js loaded..');
 	s.parentNode.removeChild(s);
 };
