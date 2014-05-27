@@ -3,8 +3,8 @@
  * the same functionality for either of them.
  */
 player = window['player-api'].children[0];
-if(player && typeof(player.pauseVideo) === 'function'){
-	player.pauseVideo();
+if(player && typeof(player.mute) === 'function'){
+	player.mute();
 }
 
 document.addEventListener('YT_player_seekTo', function(e) {
@@ -18,6 +18,9 @@ document.addEventListener('YT_player_pauseVideo', function(e) {
 });
 document.addEventListener('YT_player_nextVideo', function(e) {
     player.nextVideo();
+});
+document.addEventListener('YT_player_unMute', function(e) {
+    player.unMute();
 });
 
 updatePlayer = function(){

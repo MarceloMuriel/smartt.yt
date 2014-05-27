@@ -356,6 +356,7 @@ var YouTube = (function() {
 						player.seekTo(meta.intervals[intervalIndex], true);
 					}
 					/* Inmediately start playing the video */
+					player.unMute();
 					player.playVideo();
 					console.log('playing interval '+ (intervalIndex + 1));
 				} else {
@@ -490,6 +491,9 @@ ytPlayer = {
 	},
 	getPlayerMeta : function(){
 		return playerMeta;
+	},
+	unMute: function(){
+		document.dispatchEvent(new CustomEvent('YT_player_unMute'));
 	}
 };
 		
