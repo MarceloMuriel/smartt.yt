@@ -2,8 +2,8 @@
  * This can be the HTML or Flash player object. YouTube exposes 
  * the same functionality for either of them.
  */
-player = null;
-if(typeof(player.pauseVideo) === 'function'){
+player = window['player-api'].children[0];
+if(player && typeof(player.pauseVideo) === 'function'){
 	player.pauseVideo();
 }
 
