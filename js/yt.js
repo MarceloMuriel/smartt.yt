@@ -178,7 +178,7 @@ var YouTube = (function() {
 
 		this.loadControls = function() {
 			jQuery('#sp_controls').remove();
-			jQuery('#player').append('<div id="sp_controls"><input id="save-edit" type="checkbox"/><label for="save-edit" class="save-edit">Edit</label><div id="sp_buttons"><a href="#" id="add-interval">+Add Interval</a><div class="yt-separator">.</div><a href="#" id="add-marker">Add Marker</a></div></div>');
+			jQuery('#player').append('<div id="sp_controls"><input id="save-edit" type="checkbox"/><label for="save-edit" class="save-edit">Edit</label><div id="sp_buttons"><a href="#" id="add-interval">+Add Interval</a><!--<div class="yt-separator">.</div><a href="#" id="add-marker">Add Marker</a>--></div></div>');
 			loadSlider = function() {
 				jQuery('.yt-multi-slider-cont').remove();
 				jQuery('#sp_controls').addClass("player-width").prepend('<div class="yt-multi-slider-cont"><div class="yt-multi-slider"></div></div>');
@@ -374,7 +374,10 @@ var YouTube = (function() {
 					}
 				}
 			}
-			/* Watch for video switching */
+			/**
+			 * Watch for video switching. This normally happens when the page or the player load a 
+			 * new video. 
+			 */
 			if (( vid = Util.getURLparam('v', player.getVideoUrl())) && vid != this.getID()) {
 				console.log('vid switched to',  Util.getURLparam('v', player.getVideoUrl()), 'from ', this.getID(), ', reinitializing..');
 				player.pauseVideo();

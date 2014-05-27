@@ -8,7 +8,12 @@
 	margin: 3px 0px;
 }
 #sp_controls{
+	background: white;
 	position: relative;
+}
+#sp_buttons{
+	padding: 10px;
+	padding-top: 0px;
 }
 .yt-separator {
 	display: inline-block;
