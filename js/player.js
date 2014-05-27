@@ -3,9 +3,6 @@
  * the same functionality for either of them.
  */
 player = window['player-api'].children[0];
-if(player && typeof(player.mute) === 'function'){
-	player.mute();
-}
 
 document.addEventListener('YT_player_seekTo', function(e) {
     player.seekTo(e.detail.seconds, e.detail.allowSeekAhead);
@@ -23,24 +20,34 @@ document.addEventListener('YT_player_unMute', function(e) {
     player.unMute();
 });
 
-updatePlayer = function(){
-	player = window['player-api'].children[0];
-	if(player && typeof(player.loadVideoById) === 'function'){
+startPlayer = function(p){
+	p.mute();
+	updatePlayer = function(p){
 		document.dispatchEvent(new CustomEvent('YT_player_update', {
 			detail: {
-				'currentTime': player.getCurrentTime(),
-				'state': player.getPlayerState(),
-				'videoUrl': player.getVideoUrl()
+				'currentTime': p.getCurrentTime(),
+				'state': p.getPlayerState(),
+				'videoUrl': p.getVideoUrl()
 			}
 		}));
-	}else{
-		console.log('updatePlayer: YouTube player is not ready yet..');
-	}
+	};
+	interval_id = setInterval(updatePlayer, 1000, p);
+	console.log('player loaded, interval id for update set to ', interval_id);
+	/**
+	 * Update the player meta right after having added all event listeners.
+	 */
+	updatePlayer(p);
 };
-interval_id = setInterval(updatePlayer, 1000);
-console.log('player_update event interval ID ', interval_id);
 
-/**
- * Update the player meta right after having added all event listeners.
- */
-updatePlayer();
+if(player && typeof(player.loadVideoById) === 'function'){
+	console.log('player is not loaded, waiting..');
+	player_load_interval = setInterval(function(){
+		player = window['player-api'].children[0];
+		if(player && typeof(player.loadVideoById) === 'function'){
+			clearInterval(player_load_interval);
+			startPlayer(player);
+		}
+	}, 10);
+}else{
+	startPlayer(player);
+}
