@@ -366,7 +366,17 @@ var YouTube = (function() {
 					 */
 					if (Util.getURLparam('list', location.search)) {
 						console.log('switching to next video');
-						player.nextVideo();
+						player.pauseVideo();
+						player.mute();
+						// Try to find an anchor pointing to that video so YouTube will handle the switching.
+						if(a = jQuery("a[href^='/watch?v="+player.playlistNextVideo()+"']")){
+							a.get(0).click();
+						}else{
+							// Do the replacement in the location object directly.
+							url = player.getVideoUrl().replace(/v=[^&#]+/, 'v='+player.playlistNextVideo()).concat('&index='+(player.playlistNextIndex() + 1));
+							console.log('js location redirect to ' + url);
+							location = url;
+						}
 					} else {
 						/* Back to the beginning */
 						console.log('playing back the same video');
@@ -498,11 +508,22 @@ ytPlayer = {
 	},
 	mute: function(){
 		document.dispatchEvent(new CustomEvent('YT_player_mute'));
+	},
+	playlistNextIndex: function(){
+		return playerMeta.playlistNextIndex;
+	},
+	playlistNextVideo: function(){
+		return playerMeta.playlistNextVideo;
 	}
 };
 		
 /* Create the YouTube application */
 ytCustom = new YouTube(ytPlayer);
+/**
+ * Start the app right after at the risk the player is not yet ready 
+ * on the YouTube page. In such case, the app will get started again 
+ * on the first YT_player_update event.
+ */
 ytCustom.init();
 
 /**
@@ -520,6 +541,6 @@ document.addEventListener('YT_player_update', function(e){
 	if(!ytCustom.isReady() && ytPlayer.getVideoID()){
 		ytCustom.init(ytPlayer.getVideoID());
 	}
-	ytCustom.watchControls();
 	ytCustom.watchPlayback();
+	ytCustom.watchControls();
 });
