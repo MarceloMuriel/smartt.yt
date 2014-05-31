@@ -358,6 +358,7 @@ var YouTube = (function() {
 					/* Inmediately start playing the video */
 					player.unMute();
 					player.playVideo();
+					player.unMute();
 					console.log('playing interval '+ (intervalIndex + 1));
 				} else {
 					console.log('last interval reached.');
