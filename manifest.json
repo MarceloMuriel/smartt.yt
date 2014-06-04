@@ -2,7 +2,7 @@
 	"manifest_version": 2,
 	"name": "Smart Playlists for YouTube",
 	"description": "Smart Playlists for YouTube enhance playback experience.",
-	"version": "0.1",
+	"version": "0.5",
 	"permissions": ["http://www.youtube.com/", "https://www.youtube.com/", "tabs", "http://127.0.0.1/"],
 	"icons": {
 		"48": "img/icon-48px.png",
