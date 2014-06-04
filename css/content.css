@@ -32,6 +32,8 @@
 /* jquery UI custom slider */
 .ui-slider {
 	height: 10px;
+	border: none;
+	background: #C9C9C9;
 }
 .ui-slider-handle{
 	width: 12px !important;
