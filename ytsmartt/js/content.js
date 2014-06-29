@@ -9,3 +9,13 @@ s.onload = function(e) {
 	console.log('player.js file loaded..');
 	s.parentNode.removeChild(s);
 };
+
+/**
+ * Load the YT-Smartt comments if they are disabled.
+ */
+if(jQuery('#comments-view').length == 1){
+	console.log('yt comments disabled, loading ytsmartt comments..');
+	var s = document.createElement('script');
+	s.src = chrome.extension.getURL('js/ytcomments.js');
+	(document.head||document.documentElement).appendChild(s);
+}

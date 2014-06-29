@@ -25,5 +25,5 @@
 			"run_at": "document_idle"
 		}
 	],
-	"web_accessible_resources": ["js/player.js", "js/jquery-1.10.1.min.map", "img/*"]
+	"web_accessible_resources": ["js/player.js", "js/jquery-1.10.1.min.map", "img/*", "js/ytcomments.js"]
 }
