@@ -14,7 +14,8 @@ var YouTube = (function() {
 		// Self reference for jQuery functions.
 		yt = this;
 		// Init couch db prefix.
-		jQuery.couch.urlPrefix = "http://127.0.0.1:5984";
+		jQuery.couch.urlPrefix = "http://yt.syscrunch.com:5984";
+		//jQuery.couch.urlPrefix = "//yt.syscrunch.com:" + (location.protocol=='https'?'6984':'5984');
 		
 		this.getID = function() {
 			return id;
