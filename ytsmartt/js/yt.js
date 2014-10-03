@@ -499,16 +499,17 @@ var YouTube = (function() {
 						player.mute();
 						// Try to find an anchor pointing to that video so
 						// YouTube will handle the switching.
-						if (a = jQuery(".playlist-videos-list a[href^='/watch?v="
-								+ yt.getID() + "']")) {
-							links = a.parent().next().children(
-									"a[href^='/watch?v=']");
-							if (links.size() > 0)
-								links.get(0).click();
+						a = jQuery(".playlist-videos-list a[href^='/watch?v="
+								+ yt.getID() + "']");
+						links = a.parent().next().children(
+								"a[href^='/watch?v=']");
+						if (links.size() > 0) {
+							links.get(0).click();
 						} else {
 							// Do the replacement in the location object
 							// directly.
-							// TODO: verify how to get the next video in the flash player.
+							// TODO: verify how to get the next video from the
+							// flash player.
 							url = player.getVideoUrl().replace(/v=[^&#]+/,
 									'v=' + player.playlistNextVideo()).concat(
 									'&index='
@@ -569,73 +570,82 @@ var Util = (function() {
 	return u;
 })();
 
-ytPlayer = {
-	PLAYER_STATE_UNSTARTED : -1,
-	playerMeta : {
-		'currentTime' : 0,
-		'state' : -1,
-		'videoUrl' : ''
-	},
-	isReady : function() {
-		return playerMeta.state != this.PLAYER_STATE_UNSTARTED;
-	},
-	getCurrentTime : function() {
-		return playerMeta.currentTime;
-	},
-	getPlayerState : function() {
-		return playerMeta.state;
-	},
-	seekTo : function(seconds, allowSeekAhead) {
-		document.dispatchEvent(new CustomEvent('YT_player_seekTo', {
-			detail : {
-				'seconds' : seconds,
-				'allowSeekAhead' : allowSeekAhead
-			}
-		}));
-	},
-	playVideo : function() {
-		document.dispatchEvent(new CustomEvent('YT_player_playVideo'));
-	},
-	pauseVideo : function() {
-		document.dispatchEvent(new CustomEvent('YT_player_pauseVideo'));
-	},
-	nextVideo : function() {
-		document.dispatchEvent(new CustomEvent('YT_player_nextVideo'));
-	},
-	getVideoUrl : function() {
-		return playerMeta.videoUrl;
-	},
-	getVideoID : function() {
-		return Util.getURLparam('v', playerMeta.videoUrl);
-	},
-	setPlayerMeta : function(meta) {
-		playerMeta = meta;
-	},
-	getPlayerMeta : function() {
-		return playerMeta;
-	},
-	unMute : function() {
-		document.dispatchEvent(new CustomEvent('YT_player_unMute'));
-	},
-	mute : function() {
-		document.dispatchEvent(new CustomEvent('YT_player_mute'));
-	},
-	playlistNextIndex : function() {
-		return playerMeta.playlistNextIndex;
-	},
-	playlistNextVideo : function() {
-		return playerMeta.playlistNextVideo;
-	}
-};
+/**
+ * This a virtual player object that serves as a proxy for the YouTube HTML or
+ * Flash player in the youtube website.
+ */
+var PlayerWrapper = (function() {
+	p = function() {
+		PLAYER_STATE_UNSTARTED = -1;
+		playerMeta = {
+			'currentTime' : 0,
+			'state' : -1,
+			'videoUrl' : ''
+		};
+		this.isReady = function() {
+			return playerMeta.state != this.PLAYER_STATE_UNSTARTED;
+		};
+		this.getCurrentTime = function() {
+			return playerMeta.currentTime;
+		};
+		this.getPlayerState = function() {
+			return playerMeta.state;
+		};
+		this.seekTo = function(seconds, allowSeekAhead) {
+			document.dispatchEvent(new CustomEvent('YT_player_seekTo', {
+				detail : {
+					'seconds' : seconds,
+					'allowSeekAhead' : allowSeekAhead
+				}
+			}));
+		};
+		this.playVideo = function() {
+			document.dispatchEvent(new CustomEvent('YT_player_playVideo'));
+		};
+		this.pauseVideo = function() {
+			document.dispatchEvent(new CustomEvent('YT_player_pauseVideo'));
+		};
+		this.nextVideo = function() {
+			document.dispatchEvent(new CustomEvent('YT_player_nextVideo'));
+		};
+		this.getVideoUrl = function() {
+			return playerMeta.videoUrl;
+		};
+		this.getVideoID = function() {
+			return Util.getURLparam('v', playerMeta.videoUrl);
+		};
+		this.setPlayerMeta = function(meta) {
+			if (meta != null)
+				playerMeta = meta;
+		};
+		this.getPlayerMeta = function() {
+			return playerMeta;
+		};
+		this.unMute = function() {
+			document.dispatchEvent(new CustomEvent('YT_player_unMute'));
+		};
+		this.mute = function() {
+			document.dispatchEvent(new CustomEvent('YT_player_mute'));
+		};
+		this.playlistNextIndex = function() {
+			return playerMeta.playlistNextIndex;
+		};
+		this.playlistNextVideo = function() {
+			return playerMeta.playlistNextVideo;
+		};
+	};
+	return p;
+})();
 
+ytPlayer = new PlayerWrapper();
 /* Create the YouTube application */
-ytCustom = new YouTube(ytPlayer);
+ytApp = new YouTube(ytPlayer);
 /**
  * Start the app right after at the risk the player is not yet ready on the
  * YouTube page. In such case, the app will get started again on the first
  * YT_player_update event.
  */
-ytCustom.init();
+ytApp.init();
 
 /**
  * This handler will be executed (normally) every second with new metadata
@@ -649,14 +659,13 @@ document.addEventListener('YT_player_update', function(e) {
 	 * cannot be retrieved from the page. In such case, send the videoID
 	 * retrieved from the player metadata.
 	 */
-	if (!ytCustom.isReady() && !ytCustom.isBusy() && !ytPlayer.getVideoID()) {
-		console.log(e.detail);
+	if (!ytApp.isReady() && !ytApp.isBusy() && !ytPlayer.getVideoID()) {
 		console.log('initializing with video ' + ytPlayer.getVideoID()
-				+ ", yt object readiness " + ytCustom.isReady()
+				+ ", yt object readiness " + ytApp.isReady()
 				+ ", yt player readiness" + ytPlayer.isReady() + ", yt meta:");
-		console.log(ytCustom.getMeta());
-		ytCustom.init(ytPlayer.getVideoID());
+		console.log(ytApp.getMeta());
+		ytApp.init(ytPlayer.getVideoID());
 	}
-	ytCustom.watchPlayback();
-	ytCustom.watchControls();
+	ytApp.watchPlayback();
+	ytApp.watchControls();
 });
