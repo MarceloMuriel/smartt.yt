@@ -499,12 +499,16 @@ var YouTube = (function() {
 						player.mute();
 						// Try to find an anchor pointing to that video so
 						// YouTube will handle the switching.
-						if (a = jQuery("a[href^='/watch?v="
-								+ player.playlistNextVideo() + "']")) {
-							a.get(0).click();
+						if (a = jQuery(".playlist-videos-list a[href^='/watch?v="
+								+ yt.getID() + "']")) {
+							links = a.parent().next().children(
+									"a[href^='/watch?v=']");
+							if (links.size() > 0)
+								links.get(0).click();
 						} else {
 							// Do the replacement in the location object
 							// directly.
+							// TODO: verify how to get the next video in the flash player.
 							url = player.getVideoUrl().replace(/v=[^&#]+/,
 									'v=' + player.playlistNextVideo()).concat(
 									'&index='
