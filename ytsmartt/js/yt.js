@@ -9,6 +9,8 @@ var YouTube = (function() {
 		editionMode = false;
 		// Enable interval playback option
 		intervalsEnabled = true;
+		// Data source querying
+		isQueryingDatasource = false;
 
 		this.getPlayer = function() {
 			return player;
@@ -35,7 +37,7 @@ var YouTube = (function() {
 		 */
 		this.setMeta = function(m) {
 			meta = m;
-			console.log("meta set:", meta);
+			console.log(meta);
 		};
 		this.getMetaSerial = function() {
 			return metaSerial;
@@ -57,6 +59,9 @@ var YouTube = (function() {
 		};
 		this.isReady = function() {
 			return (meta != null && player.isReady());
+		};
+		this.isBusy = function() {
+			return isQueryingDatasource == true;
 		};
 		this.isInEditionMode = function() {
 			return editionMode;
@@ -85,10 +90,10 @@ var YouTube = (function() {
 			}
 			btn.prop('checked', editionMode).button('refresh');
 		};
-		this.isIntervalsEnabled = function(){
+		this.isIntervalsEnabled = function() {
 			return intervalsEnabled;
 		};
-		this.setIntervalsEnabled = function(flag){
+		this.setIntervalsEnabled = function(flag) {
 			intervalsEnabled = flag;
 		};
 		this.init = function(newID) {
@@ -140,6 +145,7 @@ var YouTube = (function() {
 			this.saveDB();
 		};
 		this.loadMeta = function() {
+			isQueryingDatasource = true;
 			/*
 			 * Meta structure ============== {videoID: id, duration: duration,
 			 * intervals: [init1, end1, init2, end2]}, tags: {t1: "tag 1", t2:
@@ -157,6 +163,7 @@ var YouTube = (function() {
 							{
 								key : id,
 								success : function(data) {
+									isQueryingDatasource = false;
 									/**
 									 * The retrieved data is a collection with
 									 * multiple rows. Each row value property
@@ -196,8 +203,15 @@ var YouTube = (function() {
 										 */
 										yt.setMeta(m);
 										/* Update the doc in the database */
-										yt.saveDB();
+										/*
+										 * Not necessary, the video is just
+										 * retrieved. Instead update the
+										 * metaserial to avoid saving it again
+										 */
+										yt.updateMetaSerial();
+										// yt.saveDB();
 									} else {
+										isQueryingDatasource = false;
 										console
 												.log("Cannot retrieve "
 														+ id
@@ -212,6 +226,7 @@ var YouTube = (function() {
 								 * controls.
 								 */
 								error : function(status) {
+									isQueryingDatasource = false;
 									console
 											.log("Error retrieving "
 													+ id
@@ -369,13 +384,16 @@ var YouTube = (function() {
 				icons : {
 					primary : 'ui-icon-power'
 				}
-			}).click(function(e) {
-				e.preventDefault();
-				yt.setIntervalsEnabled(!yt.isIntervalsEnabled());
-				btn = jQuery('#on-off');
-				btn.button('option', 'label', yt.isIntervalsEnabled()?'On':'Off');
-				btn.prop('checked', yt.isIntervalsEnabled()).button('refresh');
-			});
+			}).click(
+					function(e) {
+						e.preventDefault();
+						yt.setIntervalsEnabled(!yt.isIntervalsEnabled());
+						btn = jQuery('#on-off');
+						btn.button('option', 'label',
+								yt.isIntervalsEnabled() ? 'On' : 'Off');
+						btn.prop('checked', yt.isIntervalsEnabled()).button(
+								'refresh');
+					});
 		};
 
 		this.addInterval = function() {
@@ -521,41 +539,6 @@ var YouTube = (function() {
 	return yt;
 })();
 
-Timer = (function() {
-	t = function() {
-		fxs = [];
-		interval = 1000;
-		_timerID = -1;
-		this.getfxs = function() {
-			return fxs;
-		};
-		this.run = function() {
-			_timerID = setInterval(this.execute, interval, this);
-		};
-		this.add = function(obj, func, args) {
-			f = {
-				"obj" : arguments[0],
-				"func" : arguments[1],
-				"args" : Array.prototype.slice.call(arguments, 2)
-			};
-			// Call inmediately
-			f.func.apply(f.obj, f.args);
-			// Add to the list of functions for the following executions
-			fxs.push(f);
-		};
-		/* function to be called in setInterval */
-		this.execute = function(timer) {
-			timer.getfxs().forEach(function(f) {
-				f.func.apply(f.obj, f.args);
-			});
-		};
-		this.stop = function() {
-			clearInterval(_timerID);
-		};
-	};
-	return t;
-})();
-
 var Util = (function() {
 	u = function() {
 	};
@@ -662,7 +645,12 @@ document.addEventListener('YT_player_update', function(e) {
 	 * cannot be retrieved from the page. In such case, send the videoID
 	 * retrieved from the player metadata.
 	 */
-	if (!ytCustom.isReady() && ytPlayer.getVideoID()) {
+	if (!ytCustom.isReady() && !ytCustom.isBusy() && !ytPlayer.getVideoID()) {
+		console.log(e.detail);
+		console.log('initializing with video ' + ytPlayer.getVideoID()
+				+ ", yt object readiness " + ytCustom.isReady()
+				+ ", yt player readiness" + ytPlayer.isReady() + ", yt meta:");
+		console.log(ytCustom.getMeta());
 		ytCustom.init(ytPlayer.getVideoID());
 	}
 	ytCustom.watchPlayback();
