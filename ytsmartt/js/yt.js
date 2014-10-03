@@ -7,6 +7,8 @@ var YouTube = (function() {
 		intervalIndex = -2;
 		// Edition is disabled by default
 		editionMode = false;
+		// Enable interval playback option
+		intervalsEnabled = true;
 
 		this.getPlayer = function() {
 			return player;
@@ -82,6 +84,12 @@ var YouTube = (function() {
 				jQuery('.ui-slider-delete').css('display', 'none');
 			}
 			btn.prop('checked', editionMode).button('refresh');
+		};
+		this.isIntervalsEnabled = function(){
+			return intervalsEnabled;
+		};
+		this.setIntervalsEnabled = function(flag){
+			intervalsEnabled = flag;
 		};
 		this.init = function(newID) {
 			// reset the playback index
@@ -219,7 +227,7 @@ var YouTube = (function() {
 			jQuery('#sp_controls').remove();
 			jQuery('#player')
 					.append(
-							'<div id="sp_controls"><input id="save-edit" type="checkbox"/><label for="save-edit" class="save-edit">Edit</label><div id="sp_buttons"><a id="on-off" href="#">Off</a><a href="#" id="add-interval">+Add Interval</a><!--<div class="yt-separator">.</div><a href="#" id="add-marker">Add Marker</a>--></div></div>');
+							'<div id="sp_controls"><input id="save-edit" type="checkbox"/><label for="save-edit" class="save-edit">Edit</label><div id="sp_buttons"><input id="on-off" type="checkbox" checked="checked"/><label for="on-off">On</label><a href="#" id="add-interval">+Add Interval</a><!--<div class="yt-separator">.</div><a href="#" id="add-marker">Add Marker</a>--></div></div>');
 			loadSlider = function() {
 				jQuery('.yt-multi-slider-cont').remove();
 				jQuery('#sp_controls')
@@ -363,7 +371,10 @@ var YouTube = (function() {
 				}
 			}).click(function(e) {
 				e.preventDefault();
-				// TODO: on-off button
+				yt.setIntervalsEnabled(!yt.isIntervalsEnabled());
+				btn = jQuery('#on-off');
+				btn.button('option', 'label', yt.isIntervalsEnabled()?'On':'Off');
+				btn.prop('checked', yt.isIntervalsEnabled()).button('refresh');
 			});
 		};
 
@@ -437,7 +448,7 @@ var YouTube = (function() {
 			jQuery('#add-interval').button("option", "disabled", disableAddInt);
 		};
 		this.watchPlayback = function() {
-			if (!this.isReady() || this.isInEditionMode())
+			if (!this.isReady() || this.isInEditionMode() || !intervalsEnabled)
 				return;
 			t = player.getCurrentTime();
 			// console.log(player.getPlayerState(), player.getCurrentTime(),

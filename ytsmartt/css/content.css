@@ -12,8 +12,8 @@
 	position: relative;
 }
 #sp_buttons{
-	padding: 10px;
-	padding-top: 0px;
+	padding: 0px;
+	padding-bottom: 10px;
 }
 .yt-separator {
 	display: inline-block;
