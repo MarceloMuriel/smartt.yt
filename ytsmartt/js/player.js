@@ -17,16 +17,17 @@ startPlayer = function(p) {
 	 */
 	document.addEventListener('YT_player_seekTo', function(e) {
 		console.log('YT_player_seekTo ' + e.detail.seconds);
-		if (typeof (p.seekTo) === 'function')
+		if (typeof (p.seekTo) === 'function') {
 			p.seekTo(e.detail.seconds, e.detail.allowSeekAhead);
-		if (player.type == 'application/x-shockwave-flash') {
-			/*
-			 * The player might not respond the first time. Give it another
-			 * change some time after.
-			 */
-			setTimeout(function() {
-				p.seekTo(e.detail.seconds, e.detail.allowSeekAhead)
-			}, 100);
+			if (player.type == 'application/x-shockwave-flash') {
+				/*
+				 * The player might not respond the first time. Give it another
+				 * change some time after.
+				 */
+				setTimeout(function() {
+					p.seekTo(e.detail.seconds, e.detail.allowSeekAhead)
+				}, 100);
+			}
 		} else
 			console.log('seekTo is not a function..');
 	});
