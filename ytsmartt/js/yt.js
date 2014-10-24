@@ -2,6 +2,7 @@ var YouTube = (function() {
 	yt = function(player) {
 		// Local variables to the instance/function
 		id = null;
+		userID = null;
 		metaSerial = null;
 		meta = null;
 		intervalIndex = -2;
@@ -17,10 +18,8 @@ var YouTube = (function() {
 		};
 		// Self reference for jQuery functions.
 		yt = this;
-		// Init couch db prefix.
-		jQuery.couch.urlPrefix = "http://yt.syscrunch.com:5984";
-		// jQuery.couch.urlPrefix = "//yt.syscrunch.com:" +
-		// (location.protocol=='https'?'6984':'5984');
+		// API endpoint.
+		apiURL = "https://smartt.yt/api";
 
 		this.getID = function() {
 			return id;
@@ -96,9 +95,7 @@ var YouTube = (function() {
 		this.setIntervalsEnabled = function(flag) {
 			intervalsEnabled = flag;
 		};
-		this.init = function(newID) {
-			// reset the playback index
-			this.setIntervalIndex(-2);
+		this.initVideo = function(newID) {
 			/**
 			 * Load the newID if any, try also to load the videoID from the
 			 * page.
@@ -109,6 +106,61 @@ var YouTube = (function() {
 			} else {
 				console
 						.log('init: no valid videoID received or found in the page');
+			}
+		};
+		this.init = function(newID) {
+			// reset the playback index
+			this.setIntervalIndex(-2);
+
+			// Retrieve the userID from local storage
+			if (userID == null) {
+				chrome.storage.sync
+						.get(
+								'userID',
+								function(r) {
+									if (!jQuery.isEmptyObject(r)) {
+										userID = r.userID;
+										// load video meta
+										yt.initVideo(newID);
+									} else {
+										/*
+										 * There is no userID in the local
+										 * storage, request to create a new
+										 * user.
+										 */
+										jQuery
+												.ajax({
+													type : "POST",
+													url : apiURL + "/user",
+													data : {},
+													success : function(data) {
+														if (data
+																.hasOwnProperty('userID')) {
+															userID = data.userID;
+															chrome.storage.sync
+																	.set({
+																		'userID' : userID
+																	});
+															console.log('new userID', userID);
+														} else {
+															console
+																	.log('Invalid answer, no userID');
+														}
+														// load video meta
+														yt.initVideo(newID);
+													},
+													error : function(xhr, status, error) {
+														console
+																.log('API error while trying to create a new user.', xhr.responseText);
+														// load video meta
+														// anyways.
+														yt.initVideo(newID);
+													},
+													contentType : "application/json",
+													dataType : "json"
+												});
+									}
+								});
 			}
 		};
 		this.loadDefaultMeta = function() {
@@ -151,91 +203,57 @@ var YouTube = (function() {
 			 * intervals: [init1, end1, init2, end2]}, tags: {t1: "tag 1", t2:
 			 * "tag2"} }
 			 */
-
-			/**
-			 * Call the videos/all view in CouchDB that retrieves all videos and
-			 * filter it by videoID.
-			 */
-			jQuery.couch
-					.db("ytsmartplaylists")
-					.view(
-							"videos/all",
-							{
-								key : id,
-								success : function(data) {
-									isQueryingDatasource = false;
-									/**
-									 * The retrieved data is a collection with
-									 * multiple rows. Each row value property
-									 * contains the document itself, meaning the
-									 * video metadata.
-									 */
-									if (data.rows.length > 0) {
-										/*
-										 * The first row must contain the video
-										 * metadata
-										 */
-										m = data.rows[0].value;
-										/**
-										 * Update the playlist info. The same
-										 * video can belong to multiple
-										 * playlists including the current one
-										 * (if present).
-										 */
-										m.playlist = !Array.isArray(m.playlist) ? []
-												: (l = Util.getURLparam('list',
-														location.href))
-														&& m.playlist
-																.indexOf(l) == -1
-														&& m.playlist.push(l) ? m.playlist
-														: m.playlist;
-										/**
-										 * Update the channel ID for any video
-										 * without this meta, typically those
-										 * below v1.5
-										 */
-										m.channelID = !m.channelID ? jQuery(
-												"meta[itemprop='channelId']")
-												.attr('content') : m.channelID;
-										/*
-										 * Replace the current metadata with the
-										 * one of the retrieved video
-										 */
-										yt.setMeta(m);
-										/* Update the doc in the database */
-										/*
-										 * Not necessary, the video is just
-										 * retrieved. Instead update the
-										 * metaserial to avoid saving it again
-										 */
-										yt.updateMetaSerial();
-										// yt.saveDB();
-									} else {
-										isQueryingDatasource = false;
-										console
-												.log("Cannot retrieve "
-														+ id
-														+ " from server. Reading defaults..");
-										yt.loadDefaultMeta();
-									}
-									yt.loadControls();
-								},
-								/**
-								 * If the database cannot be read, load the
-								 * default meta (from the page) and start the
-								 * controls.
-								 */
-								error : function(status) {
-									isQueryingDatasource = false;
-									console
-											.log("Error retrieving "
-													+ id
-													+ " from server. Reading defaults..");
-									yt.loadDefaultMeta();
-									yt.loadControls();
-								},
-								reduce : false
-							});
+			jQuery.ajax({
+				type : "GET",
+				url : apiURL + "/video/" + id + "/" + userID,
+				success : function(m) {
+					isQueryingDatasource = false;
+					if (m) {
+						serial = JSON.stringify(m);
+						m.playlist = !Array.isArray(m.playlist) ? []
+								: (l = Util.getURLparam('list', location.href))
+										&& m.playlist.indexOf(l) == -1
+										&& m.playlist.push(l) ? m.playlist
+										: m.playlist;
+						/**
+						 * Update the channel ID for any video without this
+						 * meta, typically those below v1.5
+						 */
+						m.channelID = !m.channelID ? jQuery(
+								"meta[itemprop='channelId']").attr('content')
+								: m.channelID;
+						/*
+						 * Replace the current metadata with the one of the
+						 * retrieved video
+						 */
+						yt.setMeta(m);
+						/* Update the doc in the database */
+						/*
+						 * Not necessary, the video is just retrieved. Instead
+						 * update the metaserial to avoid saving it again
+						 */
+						yt.updateMetaSerial();
+						if (yt.getMetaSerial() != serial){
+							// Update the DB
+							yt.saveDB();
+						}
+					} else {
+						console.log(id + " does not exist in the sever");
+						yt.loadDefaultMeta();
+					}
+					yt.loadControls();
+				},
+				error : function(xhr, status, error) {
+					console.log('API error');
+					isQueryingDatasource = false;
+					console.log("Error retrieving " + id
+							+ " from server. Reading defaults..", xhr.responseText);
+					yt.loadDefaultMeta();
+					yt.loadControls();
+				},
+				contentType : "application/json",
+				dataType : "json"
+			});
 		};
 
 		this.loadControls = function() {
@@ -432,24 +450,18 @@ var YouTube = (function() {
 		};
 
 		this.saveDB = function() {
-			jQuery.couch.db("ytsmartplaylists").saveDoc(yt.getMeta(), {
+			jQuery.ajax({
+				type : "POST",
+				url : apiURL + "/video/" + userID,
+				data : JSON.stringify(yt.getMeta()),
 				success : function(data) {
-					/**
-					 * Replicate the _id and _rev properties with the database
-					 * data record returned. This is important to update the
-					 * metadata on the next database saving, instead of creating
-					 * a new doc entry in the database.
-					 */
-					yt.getMeta()._id = data.id;
-					yt.getMeta()._rev = data.rev;
-					/* Generate the metadata signature again */
 					yt.updateMetaSerial();
-					// console.log("updated meta after saving to the DB: ",
-					// yt.getMeta());
 				},
-				error : function(status) {
-					console.log("saving to DB failed: ", status);
-				}
+				error : function(xhr, status, error) {
+					console.log('API error', xhr.responseText);
+				},
+				contentType : "application/json",
+				dataType : "json"
 			});
 		};
 		this.watchControls = function() {

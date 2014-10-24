@@ -3,7 +3,7 @@
 	"name": "Smart Playlists for YouTube",
 	"description": "Smart Playlists for YouTube enhance playback experience.",
 	"version": "0.5",
-	"permissions": ["http://www.youtube.com/", "https://www.youtube.com/", "tabs", "http://127.0.0.1/"],
+	"permissions": ["http://www.youtube.com/", "https://www.youtube.com/", "tabs", "storage"],
 	"icons": {
 		"48": "img/icon-48px.png",
 		"64": "img/icon-64px.png",
@@ -21,7 +21,7 @@
 		{
 			"matches": ["http://www.youtube.com/*", "https://www.youtube.com/*"],
 			"css": ["css/jquery-ui-1.10.3.custom.min.css", "css/content.css"],
-			"js": ["js/jquery-1.10.1.min.js", "js/jquery-migrate-1.2.1.min.js", "js/jquery-ui-1.10.3.custom.min.js", "js/jquery.couch.js", "js/content.js", "js/yt.js"],
+			"js": ["js/jquery-1.10.1.min.js", "js/jquery-migrate-1.2.1.min.js", "js/jquery-ui-1.10.3.custom.min.js", "js/content.js", "js/yt.js"],
 			"run_at": "document_idle"
 		}
 	],
