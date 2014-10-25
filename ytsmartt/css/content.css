@@ -20,10 +20,17 @@
 	border-left: 1px black solid;
 	margin: 0 2px;
 }
-.save-edit{
+.edit-buttons{
 	position: absolute;
 	right: 0px;
 	top: 45%;
+}
+#cancel-edit{
+	display: none;
+}
+#cancel-edit span{
+	text-decoration: underline;
+	margin: 0.4em 1em;
 }
 .save-edit .ui-button-text{
 	padding: 3px !important;

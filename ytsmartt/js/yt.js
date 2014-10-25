@@ -65,25 +65,34 @@ var YouTube = (function() {
 		this.isInEditionMode = function() {
 			return editionMode;
 		};
-		this.setEditionMode = function(flag) {
+		this.setEditionMode = function(flag, cancel) {
 			editionMode = flag;
+			jQuery('#cancel-edit').toggle(editionMode);
 			console.log("edition mode:", editionMode);
 			btn = jQuery('#save-edit');
 			if (editionMode) {
 				btn.button('option', 'label', 'Done');
 				jQuery('.ui-slider-delete').css('display', 'block');
 			} else {
-				if (JSON.stringify(yt.getMeta()) != yt.getMetaSerial())
-					// Save changes to the DB
-					yt.saveDB();
-				// Set playback to the closest interval beginning.
-				for (i = meta.intervals.length - 2, t = player.getCurrentTime(); i >= 0
-						& t > 0; i = i - 2)
-					if (t > meta.intervals[i]) {
-						this.setIntervalIndex(i);
-						player.seekTo(meta.intervals[i], true);
-						break;
+				if (!cancel) {
+					if (JSON.stringify(yt.getMeta()) != yt.getMetaSerial())
+						// Save changes to the DB
+						yt.saveDB();
+					// Set playback to the closest interval beginning.
+					for (i = meta.intervals.length - 2, t = player
+							.getCurrentTime(); i >= 0 & t > 0; i = i - 2) {
+						if (t > meta.intervals[i]) {
+							this.setIntervalIndex(i);
+							player.seekTo(meta.intervals[i], true);
+							break;
+						}
 					}
+				}else{
+					yt.setMeta(JSON.parse(yt.getMetaSerial()));
+					console.log('restored meta to', yt.getMeta());
+					yt.metaBackup = null;
+					yt.loadSlider();
+				}
 				btn.button('option', 'label', 'Edit');
 				jQuery('.ui-slider-delete').css('display', 'none');
 			}
@@ -141,7 +150,10 @@ var YouTube = (function() {
 																	.set({
 																		'userID' : userID
 																	});
-															console.log('new userID', userID);
+															console
+																	.log(
+																			'new userID',
+																			userID);
 														} else {
 															console
 																	.log('Invalid answer, no userID');
@@ -149,9 +161,12 @@ var YouTube = (function() {
 														// load video meta
 														yt.initVideo(newID);
 													},
-													error : function(xhr, status, error) {
+													error : function(xhr,
+															status, error) {
 														console
-																.log('API error while trying to create a new user.', xhr.responseText);
+																.log(
+																		'API error while trying to create a new user.',
+																		xhr.responseText);
 														// load video meta
 														// anyways.
 														yt.initVideo(newID);
@@ -233,7 +248,7 @@ var YouTube = (function() {
 						 * update the metaserial to avoid saving it again
 						 */
 						yt.updateMetaSerial();
-						if (yt.getMetaSerial() != serial){
+						if (yt.getMetaSerial() != serial) {
 							// Update the DB
 							yt.saveDB();
 						}
@@ -247,7 +262,8 @@ var YouTube = (function() {
 					console.log('API error');
 					isQueryingDatasource = false;
 					console.log("Error retrieving " + id
-							+ " from server. Reading defaults..", xhr.responseText);
+							+ " from server. Reading defaults..",
+							xhr.responseText);
 					yt.loadDefaultMeta();
 					yt.loadControls();
 				},
@@ -255,136 +271,134 @@ var YouTube = (function() {
 				dataType : "json"
 			});
 		};
-
+		this.loadSlider = function() {
+			jQuery('.yt-multi-slider-cont').remove();
+			jQuery('#sp_controls')
+					.addClass("player-width")
+					.prepend(
+							'<div class="yt-multi-slider-cont"><div class="yt-multi-slider"></div></div>');
+			ints = meta.intervals;
+			maxVal = meta.duration;
+			mslide = jQuery(".yt-multi-slider");
+			seekPlayerTo = 0;
+			mslide
+					.slider({
+						min : 0,
+						max : maxVal,
+						values : ints,
+						step : 1,
+						create : function(evt, ui) {
+							// Add range backgrounds and delete handles.
+							for (i = 0; i < ints.length - 1; i = i + 2) {
+								l = ints[i] / maxVal * 100;
+								w = ints[i + 1] / maxVal * 100 - l;
+								mslide
+										.append(jQuery("<div></div>")
+												.addClass(
+														"ui-slider-range ui-widget-header ui-corner-all")
+												.css({
+													left : l + "%",
+													width : w + "%"
+												}));
+								// Add delete handles if there are more than
+								// 1 intervals.
+								if (ints.length / 2 > 1) {
+									jQuery('.yt-multi-slider-cont')
+											.append(
+													jQuery("<div></div>")
+															.addClass(
+																	"ui-slider-delete")
+															.css(
+																	{
+																		left : (l + ~~(w / 2))
+																				+ "%"
+																	})
+															.click(
+																	function(
+																			evt) {
+																		evt
+																				.preventDefault();
+																		// Remove
+																		// interval
+																		idx = jQuery(
+																				'.ui-slider-delete')
+																				.index(
+																						evt.currentTarget) * 2;
+																		ints
+																				.splice(
+																						idx,
+																						2);
+																		// Update
+																		// the
+																		// playback
+																		// index
+																		if (yt
+																				.getIntervalIndex() == idx)
+																			yt
+																					.setIntervalIndex(idx - 2);
+																		loadSlider();
+																	}));
+									if (!yt.isInEditionMode()) {
+										jQuery('.ui-slider-delete').css(
+												'display', 'none');
+									}
+								}
+							}
+							// Add Tooltips
+							jQuery('.ui-slider-handle')
+									.each(
+											function(idx) {
+												tooltip = '<div class="tooltip"><div class="tooltip-inner">'
+														+ Util.ftime(ints[idx])
+														+ '</div><div class="tooltip-arrow"></div></div>';
+												jQuery(this).html(tooltip);
+											});
+						},
+						slide : function(evt, ui) {
+							v = ui.values;
+							// Background ranges
+							ranges = jQuery('.ui-slider-range');
+							// Tooltips
+							tooltips = jQuery('.tooltip-inner');
+							for (i = 0; i < v.length; i++) {
+								// Check boundaries to the left and to the
+								// right if possible.
+								if ((i > 0 && v[i] <= v[i - 1])
+										|| (i < v.length - 1 && v[i] >= v[i + 1]))
+									return false;
+								// Adjust the tooltip
+								tooltips.eq(i).html(Util.ftime(v[i]));
+								// Adjust the range background
+								if (i % 2 == 0) {
+									l = v[i] / maxVal * 100;
+									w = v[i + 1] / maxVal * 100 - l;
+									ranges.eq(i / 2).css({
+										left : l + "%",
+										width : w + "%"
+									});
+								}
+							}
+							// Update the time where to seek the player on
+							// stop.
+							jQuery.grep(v, function(s) {
+								if (jQuery.inArray(s, ints) == -1)
+									seekPlayerTo = v.indexOf(s);
+							});
+							// Update the intervals values
+							ints = v;
+						},
+						stop : function(evt, ui) {
+							yt.setEditionMode(true);
+							player.seekTo(ints[seekPlayerTo], true);
+						}
+					});
+		};
 		this.loadControls = function() {
 			jQuery('#sp_controls').remove();
 			jQuery('#player')
 					.append(
-							'<div id="sp_controls"><input id="save-edit" type="checkbox"/><label for="save-edit" class="save-edit">Edit</label><div id="sp_buttons"><input id="on-off" type="checkbox" checked="checked"/><label for="on-off">On</label><a href="#" id="add-interval">+Add Interval</a><!--<div class="yt-separator">.</div><a href="#" id="add-marker">Add Marker</a>--></div></div>');
-			loadSlider = function() {
-				jQuery('.yt-multi-slider-cont').remove();
-				jQuery('#sp_controls')
-						.addClass("player-width")
-						.prepend(
-								'<div class="yt-multi-slider-cont"><div class="yt-multi-slider"></div></div>');
-				ints = meta.intervals;
-				maxVal = meta.duration;
-				mslide = jQuery(".yt-multi-slider");
-				seekPlayerTo = 0;
-				mslide
-						.slider({
-							min : 0,
-							max : maxVal,
-							values : ints,
-							step : 1,
-							create : function(evt, ui) {
-								// Add range backgrounds and delete handles.
-								for (i = 0; i < ints.length - 1; i = i + 2) {
-									l = ints[i] / maxVal * 100;
-									w = ints[i + 1] / maxVal * 100 - l;
-									mslide
-											.append(jQuery("<div></div>")
-													.addClass(
-															"ui-slider-range ui-widget-header ui-corner-all")
-													.css({
-														left : l + "%",
-														width : w + "%"
-													}));
-									// Add delete handles if there are more than
-									// 1 intervals.
-									if (ints.length / 2 > 1) {
-										jQuery('.yt-multi-slider-cont')
-												.append(
-														jQuery("<div></div>")
-																.addClass(
-																		"ui-slider-delete")
-																.css(
-																		{
-																			left : (l + ~~(w / 2))
-																					+ "%"
-																		})
-																.click(
-																		function(
-																				evt) {
-																			evt
-																					.preventDefault();
-																			// Remove
-																			// interval
-																			idx = jQuery(
-																					'.ui-slider-delete')
-																					.index(
-																							evt.currentTarget) * 2;
-																			ints
-																					.splice(
-																							idx,
-																							2);
-																			// Update
-																			// the
-																			// playback
-																			// index
-																			if (yt
-																					.getIntervalIndex() == idx)
-																				yt
-																						.setIntervalIndex(idx - 2);
-																			loadSlider();
-																		}));
-										if (!yt.isInEditionMode()) {
-											jQuery('.ui-slider-delete').css(
-													'display', 'none');
-										}
-									}
-								}
-								// Add Tooltips
-								jQuery('.ui-slider-handle')
-										.each(
-												function(idx) {
-													tooltip = '<div class="tooltip"><div class="tooltip-inner">'
-															+ Util
-																	.ftime(ints[idx])
-															+ '</div><div class="tooltip-arrow"></div></div>';
-													jQuery(this).html(tooltip);
-												});
-							},
-							slide : function(evt, ui) {
-								v = ui.values;
-								// Background ranges
-								ranges = jQuery('.ui-slider-range');
-								// Tooltips
-								tooltips = jQuery('.tooltip-inner');
-								for (i = 0; i < v.length; i++) {
-									// Check boundaries to the left and to the
-									// right if possible.
-									if ((i > 0 && v[i] <= v[i - 1])
-											|| (i < v.length - 1 && v[i] >= v[i + 1]))
-										return false;
-									// Adjust the tooltip
-									tooltips.eq(i).html(Util.ftime(v[i]));
-									// Adjust the range background
-									if (i % 2 == 0) {
-										l = v[i] / maxVal * 100;
-										w = v[i + 1] / maxVal * 100 - l;
-										ranges.eq(i / 2).css({
-											left : l + "%",
-											width : w + "%"
-										});
-									}
-								}
-								// Update the time where to seek the player on
-								// stop.
-								jQuery.grep(v, function(s) {
-									if (jQuery.inArray(s, ints) == -1)
-										seekPlayerTo = v.indexOf(s);
-								});
-								// Update the intervals values
-								ints = v;
-							},
-							stop : function(evt, ui) {
-								yt.setEditionMode(true);
-								player.seekTo(ints[seekPlayerTo], true);
-							}
-						});
-			};
-			loadSlider();
+							'<div id="sp_controls"><div class="edit-buttons"><a href="#" id="cancel-edit"><span>Cancel</span></a><input id="save-edit" type="checkbox"/><label for="save-edit">Edit</label></div><div id="sp_buttons"><input id="on-off" type="checkbox" checked="checked"/><label for="on-off">On</label><a href="#" id="add-interval">+Add Interval</a><!--<div class="yt-separator">.</div><a href="#" id="add-marker">Add Marker</a>--></div></div>');
+			yt.loadSlider();
 
 			jQuery('#add-interval').button().click(function(e) {
 				e.preventDefault();
@@ -397,6 +411,12 @@ var YouTube = (function() {
 			jQuery('#save-edit').button().click(function(e) {
 				e.preventDefault();
 				yt.setEditionMode(!yt.isInEditionMode());
+			});
+			jQuery('#cancel-edit').click(function(e) {
+				e.preventDefault();
+				// Cancel the edition mode with the cancel flag set to true.
+				yt.setEditionMode(false, true);
+				jQuery(this).hide();
 			});
 			jQuery('#on-off').button({
 				icons : {
