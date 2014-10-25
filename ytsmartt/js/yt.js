@@ -87,7 +87,7 @@ var YouTube = (function() {
 							break;
 						}
 					}
-				}else{
+				} else {
 					yt.setMeta(JSON.parse(yt.getMetaSerial()));
 					console.log('restored meta to', yt.getMeta());
 					yt.metaBackup = null;
@@ -497,12 +497,74 @@ var YouTube = (function() {
 			}
 			jQuery('#add-interval').button("option", "disabled", disableAddInt);
 		};
+		this.canSavePlaybackHistory = function(date) {
+			// Total time of the combined intervals
+			totalIntervalsTime = 0;
+			// Total played time with respect to the intervals.
+			playedTime = 0;
+			for (i = 0; i < meta.intervals.length - 1; i = i + 2) {
+				totalIntervalsTime += meta.intervals[i + 1] - meta.intervals[i];
+				// Already palyed intervals
+				if (t > meta.intervals[i + 1])
+					playedTime += meta.intervals[i + 1] - meta.intervals[i];
+				// Currently playing interval
+				if (t >= meta.intervals[i] && t <= meta.intervals[i + 1])
+					playedTime += t - meta.intervals[i];
+			}
+
+			if (playedTime / totalIntervalsTime >= 0.75) {
+				if (!this.getMeta().hasOwnProperty('history')) {
+					return true;
+				} else {
+					if (this.getMeta().history.length == 0) {
+						return true;
+					} else {
+						lastSaved = new Date(this.getMeta().history[this
+								.getMeta().history.length - 1]);
+						// The player must be playing (state 1).
+						if (player.getPlayerState() == 1
+								&& date.getTime() - lastSaved.getTime() > totalIntervalsTime * 1000)
+							return true;
+						else
+							return false;
+					}
+				}
+			} else {
+				return false;
+			}
+		};
 		this.watchPlayback = function() {
-			if (!this.isReady() || this.isInEditionMode() || !intervalsEnabled)
+			if (!this.isReady() || this.isInEditionMode())
 				return;
+
 			t = player.getCurrentTime();
+			/**
+			 * Watch to record playback history.
+			 */
+
+			// If the playback is over the threshold, then record it in the
+			// user history.
+			if (yt.canSavePlaybackHistory(new Date())) {
+				m = yt.getMeta();
+				if (!m.hasOwnProperty('history'))
+					m.history = new Array();
+				m.history[m.history.length] = (new Date()).toString()
+						.substring(0, 33);
+				yt.saveDB();
+			}
+			// console.log(timeToEndInterval, totalIntervalsTime,
+			// playedTime,
+			// playedTime / totalIntervalsTime);
+
+			if (!intervalsEnabled)
+				return;
 			// console.log(player.getPlayerState(), player.getCurrentTime(),
 			// intervalIndex, meta.intervals[intervalIndex]);
+			/*
+			 * Interval switch condition, if the playback has not startet yet or
+			 * if the playback is yet not over and the the current interval is
+			 * over.
+			 */
 			if (intervalIndex == -2
 					|| (t < meta.duration && t >= meta.intervals[intervalIndex + 1])) {
 				if (intervalIndex + 2 < meta.intervals.length) {
@@ -615,7 +677,7 @@ var PlayerWrapper = (function() {
 			'videoUrl' : ''
 		};
 		this.isReady = function() {
-			return playerMeta.state != this.PLAYER_STATE_UNSTARTED;
+			return playerMeta.state != PLAYER_STATE_UNSTARTED;
 		};
 		this.getCurrentTime = function() {
 			return playerMeta.currentTime;
