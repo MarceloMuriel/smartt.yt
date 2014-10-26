@@ -13,4 +13,4 @@ for file in css/*.css; do
 done
 
 # Create a zip file
-zip ../dist-ytsmartt LICENSE README.md css/ html/ img/ js/ manifest.json 
+zip -r ../dist-ytsmartt LICENSE README.md css/ html/ img/ js/ manifest.json 
