@@ -11,7 +11,7 @@
 		"128": "img/icon-128px.png"
 	},
 	"background": {
-		"scripts": ["js/eventPage.js"],
+		"scripts": ["js/eventpage.js"],
 		"persistent": false
 	},
 	"content_scripts": [
