@@ -3,24 +3,21 @@
 	"name": "Smart Playback for YouTube",
 	"short_name": "smartt.yt",
 	"description": "Smart playback for YouTube enhances the playback experience with custom intervals.",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"permissions": ["http://www.youtube.com/", "https://www.youtube.com/", "tabs", "storage"],
 	"icons": {
+		"16": "img/icon-16px.png",
 		"48": "img/icon-48px.png",
 		"64": "img/icon-64px.png",
 		"128": "img/icon-128px.png"
 	},
-	"background": {
-		"scripts": ["js/eventpage.js"],
-		"persistent": false
-	},
 	"content_scripts": [
 		{
 			"matches": ["http://www.youtube.com/*", "https://www.youtube.com/*"],
-			"css": ["css/jquery-ui-1.10.3.custom.min.css", "css/content.css"],
-			"js": ["js/jquery-1.10.1.min.js", "js/jquery-migrate-1.2.1.min.js", "js/jquery-ui-1.10.3.custom.min.js", "js/content.js", "js/yt.js"],
+			"css": ["css/vendor/jquery-ui-1.10.3.custom.min.css", "css/content.css"],
+			"js": ["js/vendor/jquery-1.11.1.min.js", "js/vendor/jquery-migrate-1.2.1.min.js", "js/vendor/jquery-ui-1.10.3.custom.min.js", "js/content.js", "js/yt.js"],
 			"run_at": "document_idle"
 		}
 	],
-	"web_accessible_resources": ["js/player.js", "js/jquery-1.10.1.min.map", "img/*", "js/ytcomments.js"]
+	"web_accessible_resources": ["js/player.js", "js/vendor/jquery-1.11.1.min.map", "img/*", "js/ytcomments.js"]
 }

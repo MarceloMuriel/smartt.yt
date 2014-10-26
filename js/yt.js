@@ -89,7 +89,7 @@ var YouTube = (function() {
 					}
 				} else {
 					yt.setMeta(JSON.parse(yt.getMetaSerial()));
-					console.log('restored meta to', yt.getMeta());
+					//console.log('restored meta to', yt.getMeta());
 					yt.metaBackup = null;
 					yt.loadSlider();
 				}
