@@ -3,7 +3,7 @@
 	"name": "Smart Playback for YouTube",
 	"short_name": "smartt.yt",
 	"description": "Smart playback for YouTube enhances the playback experience with custom intervals.",
-	"version": "1.0",
+	"version": "1.0.1",
 	"permissions": ["http://www.youtube.com/", "https://www.youtube.com/", "tabs", "storage"],
 	"icons": {
 		"48": "img/icon-48px.png",
