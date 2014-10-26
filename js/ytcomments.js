@@ -1,3 +1,17 @@
+/**
+ * Created on Jun 24, 2013. Copyright 2014 Hugo Muriel Arriaran; GPL License v2.
+ * 
+ * https://smartt.yt
+ * 
+ * yt.js contains the core functionality of this extension. The YouTube object
+ * is a collections of functions to handle the playback, events, communications
+ * with the server and respond to user interactions.
+ * 
+ * The player wrapper is a middleware between wrapper (injected) in the YouTube
+ * context and the functions of this file. It exposes similar methods and uses
+ * messages to exchange data with the wrapper on the YouTube side.
+ */
+
 comments = document.getElementById('watch-discussion');
 comments.id = 'ytsmartt';
 while (comments.firstChild) {

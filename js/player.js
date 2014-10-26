@@ -1,7 +1,12 @@
 /**
- * This can be the HTML or Flash player object. YouTube exposes the same
- * functionality for either of them.
+ * Created on Jun 24, 2013. Copyright 2014 Hugo Muriel Arriaran; GPL License v2.
+ * 
+ * https://smartt.yt
+ * 
+ * Wrapper around the YouTube player that can be the HTML or Flash object.
+ * YouTube exposes the same functionality for either of them.
  */
+
 player = window['player-api'].children[0];
 
 startPlayer = function(p) {

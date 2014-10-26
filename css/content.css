@@ -1,38 +1,52 @@
+/**
+ * Created on Jun 24, 2013. Copyright 2014 Hugo Muriel Arriaran; GPL License v2.
+ * 
+ * https://smartt.yt
+ * 
+ * UI styles used on the youtube.com page.
+ */
 .yt-controls {
 	width: 100%;
 	min-height: 70px;
 	/*border: 1px solid black;*/
-	background-color: rgba(241,241,241,1.0);
+	background-color: rgba(241, 241, 241, 1.0);
 	overflow-x: hidden;
 	font-size: 11px;
 	margin: 3px 0px;
 }
-#sp_controls{
+
+#sp_controls {
 	/*background: white;*/
 	position: relative;
 }
-#sp_buttons{
+
+#sp_buttons {
 	padding: 0px;
 	padding-bottom: 10px;
 }
+
 .yt-separator {
 	display: inline-block;
 	border-left: 1px black solid;
 	margin: 0 2px;
 }
-.edit-buttons{
+
+.edit-buttons {
 	position: absolute;
 	right: 0px;
 	top: 45%;
 }
-#cancel-edit{
+
+#cancel-edit {
 	display: none;
 }
-#cancel-edit span{
+
+#cancel-edit span {
 	text-decoration: underline;
 	margin: 0.4em 1em;
 }
-.save-edit .ui-button-text{
+
+.save-edit .ui-button-text {
 	padding: 3px !important;
 	font-size: 90% !important;
 }
@@ -42,62 +56,68 @@
 	border: none;
 	background: #C9C9C9;
 }
-.ui-slider-handle{
+
+.ui-slider-handle {
 	width: 12px !important;
 	height: 12px !important;
 	top: -1px !important;
 }
+
 .ui-slider-range {
 	height: 10px;
 	background-color: #4c8bca;
 }
-.yt-multi-slider-cont{
+
+.yt-multi-slider-cont {
 	position: relative;
 	padding: 15px 0px;
-	margin: 10px 0px; 
+	margin: 10px 0px;
 }
 /* Interval removal*/
-.ui-slider-delete{
+.ui-slider-delete {
 	position: absolute;
-	background-image: url('chrome-extension://__MSG_@@extension_id__/img/del_16px.png');
+	background-image:
+		url('chrome-extension://__MSG_@@extension_id__/img/del_16px.png');
 	width: 16px;
 	height: 16px;
 	top: -5px;
 	border: none;
-	cursor:pointer;
+	cursor: pointer;
 	/*border: 1px solid #CCCCCC;*/
 }
 /* Slider handle tooltip */
 .tooltip {
-    position: absolute;
-    z-index: 1020;
-    display: block;
-    padding: 3px;
-    font-size: 9px;
-    visibility: visible;
-    margin-top: -2px;
-    bottom:120%;
-    margin-left: -0.9em;
+	position: absolute;
+	z-index: 1020;
+	display: block;
+	padding: 3px;
+	font-size: 9px;
+	visibility: visible;
+	margin-top: -2px;
+	bottom: 120%;
+	margin-left: -0.9em;
 }
+
 .tooltip .tooltip-arrow {
-    bottom: 0;
-    left: 50%;
-    margin-left: -5px;
-    border-top: 5px solid #545454;
-    border-right: 5px solid transparent;
-    border-left: 5px solid transparent;
-    position: absolute;
-    width: 0;
-    height: 0;
+	bottom: 0;
+	left: 50%;
+	margin-left: -5px;
+	border-top: 5px solid #545454;
+	border-right: 5px solid transparent;
+	border-left: 5px solid transparent;
+	position: absolute;
+	width: 0;
+	height: 0;
 }
+
 .tooltip-inner {
-    max-width: 200px;
-    padding: 3px 5px;
-    color: #ffffff;
-    text-align: center;
-    text-decoration: none;
-    background-color: #545454;
-    -webkit-border-radius: 4px;
-    -moz-border-radius: 4px;
-    border-radius: 4px;
+	max-width: 200px;
+	padding: 3px 5px;
+	color: #ffffff;
+	text-align: center;
+	text-decoration: none;
+	background-color: #545454;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
 }

@@ -1,3 +1,10 @@
-*{
+/**
+ * Created on Jun 24, 2013. Copyright 2014 Hugo Muriel Arriaran; GPL License v2.
+ * 
+ * https://smartt.yt
+ * 
+ * UI styles used on the configuration options of the extension.
+ */
+* {
 	padding: 2px;
 }
