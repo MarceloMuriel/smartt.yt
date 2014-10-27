@@ -16,7 +16,9 @@ var YouTube = (function() {
 	yt = function(player) {
 		// Local variables to the instance/function
 		id = null;
-		userID = null;
+		user = {
+			userID : null
+		}
 		metaSerial = null;
 		meta = null;
 		intervalIndex = -2;
@@ -40,6 +42,12 @@ var YouTube = (function() {
 		};
 		this.setID = function(_id) {
 			id = _id;
+		};
+		this.getUser = function() {
+			return user;
+		};
+		this.setUser = function(userData) {
+			user = userData;
 		};
 		this.getMeta = function() {
 			return meta;
@@ -136,13 +144,13 @@ var YouTube = (function() {
 			this.setIntervalIndex(-2);
 
 			// Retrieve the userID from local storage
-			if (userID == null) {
+			if (user.userID == null) {
 				chrome.storage.sync
 						.get(
 								'userID',
 								function(r) {
 									if (!jQuery.isEmptyObject(r)) {
-										userID = r.userID;
+										user.userID = r.userID;
 										// load video meta
 										yt.initVideo(newID);
 									} else {
@@ -159,15 +167,13 @@ var YouTube = (function() {
 													success : function(data) {
 														if (data
 																.hasOwnProperty('userID')) {
-															userID = data.userID;
+															user = data;
 															chrome.storage.sync
 																	.set({
-																		'userID' : userID
+																		'userID' : user.userID
 																	});
 															console
-																	.log(
-																			'new userID',
-																			userID);
+																	.log(user.userID);
 														} else {
 															console
 																	.log('Invalid answer, no userID');
@@ -221,7 +227,8 @@ var YouTube = (function() {
 						 * whole video duration.
 						 */
 						intervals : [ 0, duration ],
-						tags : {}
+						tags : {},
+						added: (new Date()).toString().substring(0, 33)
 					});
 			this.saveDB();
 		};
@@ -234,7 +241,7 @@ var YouTube = (function() {
 			 */
 			jQuery.ajax({
 				type : "GET",
-				url : apiURL + "/video/" + id + "/" + userID,
+				url : apiURL + "/video/" + id + "/" + user.userID,
 				success : function(m) {
 					isQueryingDatasource = false;
 					if (m) {
@@ -486,7 +493,7 @@ var YouTube = (function() {
 		this.saveDB = function() {
 			jQuery.ajax({
 				type : "POST",
-				url : apiURL + "/video/" + userID,
+				url : apiURL + "/video/" + user.userID,
 				data : JSON.stringify(yt.getMeta()),
 				success : function(data) {
 					yt.updateMetaSerial();
@@ -546,6 +553,21 @@ var YouTube = (function() {
 			} else {
 				return false;
 			}
+		};
+		this.userChange = function() {
+			// User channel (if one exists)
+			channel = jQuery('.guide-user-links a[href^="/channel/"]');
+			if (channel.size() > 0) {
+				chunks = channel.get(0).href.split('/channel/');
+				if (chunks.length == 2)
+					user.channelID = chunks[1];
+			}
+			// User email account
+			email = jQuery('.yt-masthead-account-picker > a')
+			if (email.size() > 0) {
+				user.email = email.text().trim();
+			}
+			return user;
 		};
 		this.watchPlayback = function() {
 			if (!this.isReady() || this.isInEditionMode())
@@ -646,6 +668,29 @@ var YouTube = (function() {
 				player.pauseVideo();
 				this.setEditionMode(false);
 				this.init(vid);
+			}
+			/**
+			 * Watch for user data change
+			 */
+			if (Math.floor(t) % 10 == 0) {
+				userSerial = JSON.stringify(yt.getUser());
+				userData = yt.userChange();
+				if (userSerial != JSON.stringify(userData)) {
+					console.log('user data changed..');
+					jQuery.ajax({
+						type : "PUT",
+						url : apiURL + "/user/" + yt.getUser().userID,
+						data : JSON.stringify(yt.getUser()),
+						success : function(data) {
+						},
+						error : function(xhr, status, error) {
+							console.log('API error while updating user.',
+									xhr.responseText);
+						},
+						contentType : "application/json",
+						dataType : "json"
+					});
+				}
 			}
 		};
 	};

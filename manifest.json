@@ -6,9 +6,12 @@
 	"version": "1.0.8",
 	"icons": {
 		"16": "img/icon16.png",
+		"32": "img/icon32.png",
 		"48": "img/icon48.png",
-		"128": "img/icon128.png"
-		},
+		"64": "img/icon64.png",
+		"128": "img/icon128.png",
+		"256": "img/icon256.png"
+	},
 	"permissions": ["http://www.youtube.com/", "https://www.youtube.com/", "tabs", "storage"],
 	"content_scripts": [
 		{
