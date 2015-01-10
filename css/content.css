@@ -16,12 +16,14 @@
 }
 
 #sp_controls {
-	/*background: white;*/
 	position: relative;
 	display: block;
-	margin: 0 auto;
 }
 
+.watch-stage-mode #sp_controls {
+	margin: 0 auto;
+}
+	
 #sp_buttons {
 	padding: 0px;
 	padding-bottom: 10px;
