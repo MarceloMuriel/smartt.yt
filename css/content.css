@@ -18,6 +18,8 @@
 #sp_controls {
 	/*background: white;*/
 	position: relative;
+	display: block;
+	margin: 0 auto;
 }
 
 #sp_buttons {
