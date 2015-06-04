@@ -416,7 +416,7 @@ var YouTube = (function() {
 		};
 		this.loadControls = function() {
 			jQuery('#sp_controls').remove();
-			jQuery('#player')
+			jQuery('#placeholder-player')
 					.append(
 							'<div id="sp_controls"><div class="edit-buttons"><a href="#" id="cancel-edit"><span>Cancel</span></a><input id="save-edit" type="checkbox"/><label for="save-edit">Edit</label></div><div id="sp_buttons"><input id="on-off" type="checkbox" checked="checked"/><label for="on-off">On</label><a href="#" id="add-interval">+Add Interval</a><!--<div class="yt-separator">.</div><a href="#" id="add-marker">Add Marker</a>--></div></div>');
 			yt.loadSlider();
