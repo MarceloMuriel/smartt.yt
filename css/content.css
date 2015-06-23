@@ -121,3 +121,8 @@
 	-moz-border-radius: 4px;
 	border-radius: 4px;
 }
+
+/* Avoid the playlist header to overlap in theater mode */
+.watch-stage-mode #player-playlist .watch-playlist {
+	top: 260px !important;
+}
